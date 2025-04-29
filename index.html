@@ -6,23 +6,20 @@
     <title>Dev Log</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
     <header>
         <h1>Dev Log: My Coding Journey</h1>
     </header>
 
     <section class="log-container">
-     
+        <!-- Log Entries will load here -->
     </section>
 
     <footer>
-
-
-<!--POST BTN-->
+        <!-- Post Button -->
         <button id="newPostBtn">➕ New Post</button>
 
-        <!-- Pop-up modal for making a new post -->
+        <!-- Pop-up modal for creating new post -->
         <div id="postModal" class="modal hidden">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -32,17 +29,35 @@
                 <button onclick="submitPost()">Post</button>
             </div>
         </div>
-        
-        <!-- Area where posts will appear -->
-        <div id="postsContainer"></div>
-<!--POST BTN-->
-
-
 
         <p>Kasra's Dev Log | Built with passion 🚀</p>
     </footer>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-<script src="JavaScript.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Initialization -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBFU1HAGWw04spvFx4ni4hUQ2J3npbz-oU",
+            authDomain: "devlogkasra.firebaseapp.com",
+            projectId: "devlogkasra",
+            storageBucket: "devlogkasra.firebasestorage.app",
+           messagingSenderId: "71908948818",
+            appId: "1:71908948818:web:2407e8aca9d033ee73d88b",
+          measurementId: "G-Y8F741V0Q3"
+         };
+    
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Initialize Firestore
+        const db = firebase.firestore();
+    </script>
+
+    <!-- Custom JavaScript -->
+    <script src="JavaScript.js"></script>
 </body>
 </html>
