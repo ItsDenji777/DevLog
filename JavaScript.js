@@ -1,3 +1,6 @@
+window.onload = function () {
+    console.log(db);
+};
 document.getElementById("newPostBtn").addEventListener("click", function() {
     let password = prompt("Enter password to create a new post:");
     if (password === "6969") { // Change this to your actual password
