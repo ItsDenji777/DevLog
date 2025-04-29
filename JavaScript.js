@@ -1,3 +1,20 @@
+const firebaseConfig = {
+    apiKey: "AIzaSyBFU1HAGWw04spvFx4ni4hUQ2J3npbz-oU",
+    authDomain: "devlogkasra.firebaseapp.com",
+    projectId: "devlogkasra",
+    storageBucket: "devlogkasra.firebasestorage.app",
+    messagingSenderId: "71908948818",
+    appId: "1:71908948818:web:2407e8aca9d033ee73d88b",
+    measurementId: "G-Y8F741V0Q3"
+  };
+  
+     // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+  
+      // Initialize Firestore
+      const db = firebase.firestore();
+  
+
 window.onload = function () {
     console.log(db);
 };
