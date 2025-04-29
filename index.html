@@ -9,6 +9,15 @@
 <body>
     <header>
         <h1>Dev Log: My Coding Journey</h1>
+        <div id="loginModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Login to Manage Posts</h2>
+                <input id="loginEmail" type="email" placeholder="Enter your email" />
+                <input id="loginPassword" type="password" placeholder="Enter your password" />
+                <button onclick="login()">Login</button>
+
+            </div>
+        </div>
     </header>
 
     <section class="log-container">
@@ -17,9 +26,12 @@
 
     <footer>
         <!-- Post Button -->
-        <button id="newPostBtn">➕ New Post</button>
-
-        <!-- Pop-up modal for creating new post -->
+        <button id="newPostBtn" class="hidden">➕ New Post</button>
+                <!-- Login Button -->
+                <button id="loginBtn">🔒 Login</button>
+                <!-- Logout Button -->
+                <button id="logoutBtn" class="hidden">🔓 Logout</button>
+       
         <div id="postModal" class="modal hidden">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -36,6 +48,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
     <!-- Firebase Initialization -->
     <script>
@@ -55,6 +68,8 @@
 
         // Initialize Firestore
         const db = firebase.firestore();
+        const auth = firebase.auth();
+
     </script>
 
     <!-- Custom JavaScript -->

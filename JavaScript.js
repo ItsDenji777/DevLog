@@ -1,14 +1,10 @@
 window.onload = function () {
     console.log(db);
 };
-document.getElementById("newPostBtn").addEventListener("click", function() {
-    let password = prompt("Enter password to create a new post:");
-    if (password === "6969") { // Change this to your actual password
-        document.getElementById("postModal").classList.remove("hidden");
-    } else {
-        alert("❌ Incorrect password. Access denied!");
-    }
+document.getElementById("newPostBtn").addEventListener("click", function () {
+    document.getElementById("postModal").classList.remove("hidden"); // Just open the modal
 });
+
 
 document.querySelector(".close").addEventListener("click", function() {
     document.getElementById("postModal").classList.add("hidden");
@@ -17,55 +13,53 @@ document.querySelector(".close").addEventListener("click", function() {
 
 
 function submitPost() {
-    let title = document.getElementById("postTitle").value;
-    let content = document.getElementById("postContent").value;
+    if (auth.currentUser) { // Check if user is logged in
+        let title = document.getElementById("postTitle").value;
+        let content = document.getElementById("postContent").value;
 
-    if (title.trim() !== "" && content.trim() !== "") {
-        // Save post to Firestore
-        db.collection("posts").add({
-            title: title,
-            content: content,
-            date: new Date().toLocaleDateString()
-        })
-        .then(() => {
-            alert("✅ Post added successfully!");
+        if (title.trim() !== "" && content.trim() !== "") {
+            db.collection("posts").add({
+                title: title,
+                content: content,
+                date: new Date().toLocaleDateString()
+            })
+            .then(() => {
+                alert("✅ Post added successfully!");
+                document.getElementById("postTitle").value = "";
+                document.getElementById("postContent").value = "";
+                document.getElementById("postModal").classList.add("hidden");
 
-            // Dynamically add post to UI
-            let logContainer = document.querySelector(".log-container");
-            let postElement = document.createElement("div");
-            postElement.classList.add("log-entry");
-            postElement.innerHTML = `
-                <h2>${title}</h2>
-                <p>${content}</p>
-                <span class="date">${new Date().toLocaleDateString()}</span>
-            `;
-            logContainer.prepend(postElement);
-
-            // Clear inputs & hide modal
-            document.getElementById("postTitle").value = "";
-            document.getElementById("postContent").value = "";
-            document.getElementById("postModal").classList.add("hidden");
-        })
-        .catch(error => {
-            alert("❌ Error adding post: " + error.message);
-        });
+                // Dynamically update the UI
+                let logContainer = document.querySelector(".log-container");
+                let postElement = document.createElement("div");
+                postElement.classList.add("log-entry");
+                postElement.innerHTML = `
+                    <h2>${title}</h2>
+                    <p>${content}</p>
+                    <span class="date">${new Date().toLocaleDateString()}</span>
+                `;
+                logContainer.prepend(postElement);
+            })
+            .catch(error => {
+                alert("❌ Error adding post: " + error.message);
+            });
+        } else {
+            alert("⚠️ Title and content cannot be empty!");
+        }
     } else {
-        alert("⚠️ Title and content cannot be empty!");
+        alert("❌ You must be logged in to post.");
+        showLoginModal(); // Call the login modal if not logged in
     }
 }
 
-
-// 🔥 Password-protected delete function 🔥
 function deletePost(button) {
-    let password = prompt("Enter password to delete this post:");
-    if (password === "6969") {
+    if (auth.currentUser) { // Check if user is logged in
         let postElement = button.parentElement;
 
-        // Get post title and content
+        // Get post details
         let title = postElement.querySelector("h2").innerText;
         let content = postElement.querySelector("p").innerText;
 
-        // Find and delete post in Firestore
         db.collection("posts").where("title", "==", title).where("content", "==", content).get()
         .then(snapshot => {
             snapshot.forEach(doc => {
@@ -83,9 +77,11 @@ function deletePost(button) {
             alert("❌ Error finding post: " + error.message);
         });
     } else {
-        alert("❌ Incorrect password. Post not deleted.");
+        alert("❌ You must be logged in to delete posts.");
+        showLoginModal(); // Call the login modal if not logged in
     }
 }
+
 
 // Load saved posts when the page loads
 window.onload = function () {
@@ -101,6 +97,7 @@ window.onload = function () {
                 <h2>${data.title}</h2>
                 <p>${data.content}</p>
                 <span class="date">${data.date}</span>
+                <button class="deleteBtn" onclick="deletePost(this)">🗑️ Delete</button>
             `;
             logContainer.appendChild(postElement);
         });
@@ -124,3 +121,103 @@ function sendNotification(title, message) {
     }
 }
 
+
+function showLoginModal() {
+    document.getElementById("loginModal").classList.remove("hidden");
+}
+
+function login() {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+        alert("✅ Successfully logged in!");
+
+        // Show the "New Post" button
+        document.getElementById("newPostBtn").classList.remove("hidden");
+
+        // Hide the login modal
+        document.getElementById("loginModal").classList.add("hidden");
+    })
+    .catch(error => {
+        alert("❌ Login failed: " + error.message);
+    });
+}
+
+function logout() {
+    auth.signOut()
+    .then(() => {
+        alert("✅ Successfully logged out!");
+
+        // Hide the "New Post" button
+        document.getElementById("newPostBtn").classList.add("hidden");
+    })
+    .catch(error => {
+        alert("❌ Error logging out: " + error.message);
+    });
+}
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        // User is logged in; show the "New Post" button
+        document.getElementById("newPostBtn").classList.remove("hidden");
+    } else {
+        // User is not logged in; hide the "New Post" button
+        document.getElementById("newPostBtn").classList.add("hidden");
+    }
+});
+
+// Show the login modal when Login button is clicked
+document.getElementById("loginBtn").addEventListener("click", function () {
+    document.getElementById("loginModal").classList.remove("hidden");
+});
+
+// Log the user out when Logout button is clicked
+document.getElementById("logoutBtn").addEventListener("click", function () {
+    auth.signOut()
+    .then(() => {
+        alert("✅ Successfully logged out!");
+        document.getElementById("loginBtn").classList.remove("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+        document.getElementById("newPostBtn").classList.add("hidden"); // Hide New Post button
+    })
+    .catch(error => {
+        alert("❌ Error logging out: " + error.message);
+    });
+});
+
+// Check login state and update buttons on page load
+auth.onAuthStateChanged(user => {
+    if (user) {
+        // User is logged in
+        document.getElementById("loginBtn").classList.add("hidden");
+        document.getElementById("logoutBtn").classList.remove("hidden");
+        document.getElementById("newPostBtn").classList.remove("hidden"); // Show New Post button
+    } else {
+        // User is logged out
+        document.getElementById("loginBtn").classList.remove("hidden");
+        document.getElementById("logoutBtn").classList.add("hidden");
+        document.getElementById("newPostBtn").classList.add("hidden"); // Hide New Post button
+    }
+});
+
+let postElement = document.createElement("div");
+postElement.classList.add("log-entry");
+postElement.innerHTML = `
+    <h2>${title}</h2>
+    <p>${content}</p>
+    <span class="date">${new Date().toLocaleDateString()}</span>
+    <button class="deleteBtn" onclick="deletePost(this)">🗑️ Delete</button>
+`;
+logContainer.prepend(postElement);
+
+db.collection("posts").get()
+.catch(error => {
+    alert("⚠️ Unable to load posts. Firebase access might be restricted in your region.");
+    console.error("Firebase error:", error.message);
+});
+firebase.firestore().enablePersistence()
+.catch(error => {
+    console.error("Offline persistence failed:", error);
+});
