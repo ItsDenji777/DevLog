@@ -30,15 +30,7 @@ function submitPost() {
                 document.getElementById("postModal").classList.add("hidden");
 
                 // Dynamically update the UI
-                let logContainer = document.querySelector(".log-container");
-                let postElement = document.createElement("div");
-                postElement.classList.add("log-entry");
-                postElement.innerHTML = `
-                    <h2>${title}</h2>
-                    <p>${content}</p>
-                    <span class="date">${new Date().toLocaleDateString()}</span>
-                `;
-                logContainer.prepend(postElement);
+                addPostToUI(title, content, new Date().toLocaleDateString(), true); // Include delete button for logged-in users
             })
             .catch(error => {
                 alert("❌ Error adding post: " + error.message);
@@ -51,6 +43,20 @@ function submitPost() {
         showLoginModal(); // Call the login modal if not logged in
     }
 }
+
+function addPostToUI(title, content, date, showDeleteBtn) {
+    let logContainer = document.querySelector(".log-container");
+    let postElement = document.createElement("div");
+    postElement.classList.add("log-entry");
+    postElement.innerHTML = `
+        <h2>${title}</h2>
+        <p>${content}</p>
+        <span class="date">${date}</span>
+        ${showDeleteBtn ? '<button class="deleteBtn" onclick="deletePost(this)">🗑️ Delete</button>' : ''}
+    `;
+    logContainer.prepend(postElement); // Add the post to the top of the list
+}
+
 
 function deletePost(button) {
     if (auth.currentUser) { // Check if user is logged in
@@ -87,7 +93,7 @@ function deletePost(button) {
 window.onload = function () {
     let logContainer = document.querySelector(".log-container");
 
-    db.collection("posts").orderBy("date", "desc").get()
+    db.collection("posts").orderBy("date", "asc").get()
     .then(snapshot => {
         snapshot.forEach(doc => {
             let data = doc.data();
@@ -120,6 +126,19 @@ function sendNotification(title, message) {
         }
     }
 }
+
+window.onload = function () {
+    db.collection("posts").orderBy("date", "asc").get()
+    .then(snapshot => {
+        snapshot.forEach(doc => {
+            let data = doc.data();
+            addPostToUI(data.title, data.content, data.date, !!auth.currentUser); // Include delete button if logged in
+        });
+    })
+    .catch(error => {
+        alert("❌ Error loading posts: " + error.message);
+    });
+};
 
 
 function showLoginModal() {
