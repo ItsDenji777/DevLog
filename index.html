@@ -37,6 +37,7 @@
     <footer>
         <!-- Post Button -->
         <button id="newPostBtn" class="hidden">➕ New Post</button>
+        
                 <!-- Login Button -->
                 <button id="loginBtn">🔒 Login</button>
                 <!-- Logout Button -->
@@ -49,40 +50,17 @@
                 <input id="postTitle" type="text" placeholder="Enter post title..." />
                 <textarea id="postContent" placeholder="Write your update here..."></textarea>
                 <button onclick="submitPost()">Post</button>
+
             </div>
         </div>
 
         <p>Built with passion 🚀 and love 💙</p>
     </footer>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
-    <!-- Firebase Initialization -->
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBFU1HAGWw04spvFx4ni4hUQ2J3npbz-oU",
-            authDomain: "devlogkasra.firebaseapp.com",
-            projectId: "devlogkasra",
-            storageBucket: "devlogkasra.firebasestorage.app",
-           messagingSenderId: "71908948818",
-            appId: "1:71908948818:web:2407e8aca9d033ee73d88b",
-          measurementId: "G-Y8F741V0Q3"
-         };
-    
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-
-        // Initialize Firestore
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-    </script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Custom JavaScript -->
-    <script src="JavaScript.js"></script>
+    <script src="JavaScript.js" defer></script>
 </body>
 </html>
+

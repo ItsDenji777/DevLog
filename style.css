@@ -167,3 +167,26 @@ button:hover {
 #loginBtn:hover, #logoutBtn:hover {
     box-shadow: 0px 0px 10px #4fa3d1;
 }
+
+
+.like-container {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.heart-icon {
+  transition: fill 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+
+.like-count {
+  font-size: 14px;
+  color: #ccc;
+}
+
