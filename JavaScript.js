@@ -154,7 +154,7 @@ window.onload = async function () {
   const { data, error } = await supabase
         .from('posts')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
     if (error) {
         alert("❌ Error loading posts: " + error.message);
