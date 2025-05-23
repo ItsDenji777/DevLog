@@ -35,11 +35,6 @@ async function login() {
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
 
-  if (email !== "denjisworkspace@gmail.com") {
-    alert("❌ Only the admin can log in.");
-    return;
-  }
-
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
