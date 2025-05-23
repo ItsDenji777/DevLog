@@ -143,24 +143,29 @@ function addPostToUI(title, content, date, showDeleteBtn, id) {
 
 
 window.onload = async function () {
+  document.getElementById("loadingOverlay").classList.remove("hidden");
+
   const session = await supabase.auth.getSession();
   const user = session.data.session?.user;
   updateAuthUI(!!user);
+
   const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: true });
+    .from('posts')
+    .select('*')
+    .order('created_at', { ascending: true });
 
-    if (error) {
-        alert("❌ Error loading posts: " + error.message);
-        return;
-    }
+  if (error) {
+    alert("❌ Error loading posts: " + error.message);
+    return;
+  }
 
-    data.forEach(post => {
-        let formattedDate = new Date(post.created_at).toLocaleDateString();
-        const isLoggedIn = !!user; // Check if the user is logged in
-        addPostToUI(post.title, post.content, formattedDate, isLoggedIn, post.id);
-    });
+  data.forEach(post => {
+    let formattedDate = new Date(post.created_at).toLocaleDateString();
+    const isLoggedIn = !!user;
+    addPostToUI(post.title, post.content, formattedDate, isLoggedIn, post.id);
+  });
+
+  document.getElementById("loadingOverlay").classList.add("hidden");
 };
 
 

@@ -189,3 +189,38 @@ button:hover {
     box-shadow: 0px 0px 10px #4fa3d1;
 }
 
+
+#loadingOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #1d2026;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  color: #4fa3d1;
+  font-size: 2em;
+  font-weight: bold;
+  transition: opacity 0.3s ease;
+}
+
+#loadingOverlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dots::after {
+  content: "";
+  display: inline-block;
+  animation: dots 0.8s steps(3, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ""; }
+  33% { content: "."; }
+  66% { content: ".."; }
+  100% { content: "..."; }
+}
