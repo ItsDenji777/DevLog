@@ -101,7 +101,7 @@ footer {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #1f1f1f;
+    background-color: #21242c;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0px 0px 15px #4fa3d1;
@@ -189,6 +189,20 @@ button:hover {
     box-shadow: 0px 0px 10px #4fa3d1;
 }
 
+.editTitleInput, .editContentTextarea {
+  width: 95%;
+  margin: 0.5em 0;
+  font-size: 1em;
+  padding: 0.5em;
+}
+
+.cancelEditBtn {
+ background-color: #ff5757;
+}
+
+.cancelEditBtn:hover {
+    box-shadow: 0px 0px 10px #ff5757;
+}
 
 #loadingOverlay {
   position: fixed;
