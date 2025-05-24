@@ -49,6 +49,7 @@ async function submitPost() {
       .from('posts')
       .insert([{ title, content }])
       .select();
+      sendNotification("New Post🔔", title);
 
     if (error) {
       alert("❌ Error adding post: " + error.message);
@@ -266,14 +267,14 @@ document.getElementById("logoutBtn").addEventListener("click", logout);
 
 
 // OPTIONAL NOTIFICATIONS
-function sendNotification(title, message) {
+function sendNotification(title, content) {
   if ("Notification" in window) {
     if (Notification.permission === "granted") {
-      new Notification(title, { body: message });
+      new Notification(title, { body: content});
     } else if (Notification.permission !== "denied") {
       Notification.requestPermission().then(permission => {
         if (permission === "granted") {
-          new Notification(title, { body: message });
+          new Notification(title, { body: content});
         }
       });
     }
