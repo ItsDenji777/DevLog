@@ -229,8 +229,8 @@ async function submitPost() {
       .insert([{ title, content }])
       .select();
       if (error) {
-        alert("❌ Error:", error.message)
-      } else {
+      alert("❌ Error adding post: " + error.message);
+    } else {
       const newPost = data[0];
       alert("✅ Post added successfully!");
       sendNotification("New Post🔔", title);
