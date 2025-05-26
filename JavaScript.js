@@ -106,25 +106,50 @@ async function editPost(button) {
   const contentEl = postElement.querySelector("p");
   const deleteBtn = postElement.querySelector(".deleteBtn");
 
-  // Hide delete button
+  // Hide delete button while editing
   if (deleteBtn) deleteBtn.classList.add("hidden");
 
-  // Replace content with input fields
+  // Create input fields for editing
   const titleInput = document.createElement("input");
   titleInput.value = titleEl.innerText;
   titleInput.classList.add("editTitleInput");
 
   const contentTextarea = document.createElement("textarea");
-  contentTextarea.value = contentEl.innerText;
   contentTextarea.classList.add("editContentTextarea");
+  const rawMarkdown = contentEl.dataset.md ? decodeURIComponent(contentEl.dataset.md) : contentEl.innerText;
+  contentTextarea.value = rawMarkdown;
 
-  // Replace display elements
-  postElement.insertBefore(titleInput, titleEl);
-  postElement.insertBefore(contentTextarea, contentEl);
+  // Markdown toolbar for editing
+  const toolbar = document.createElement("div");
+  toolbar.classList.add("toolbar");
+  const buttons = [
+    { label: "<b>B</b>", before: "**", after: "**" },
+    { label: "<i>I</i>", before: "_", after: "_" },
+    { label: "Link", before: "[", after: "](url)" },
+    { label: "Image", before: "![", after: "](image-url)" },
+    { label: "H1", before: "# ", after: "" },
+    { label: "H2", before: "## ", after: "" },
+    { label: "•", before: "- ", after: "" },
+    { label: "1.", before: "1. ", after: "" },
+  ];
+  buttons.forEach(btn => {
+    const buttonEl = document.createElement("button");
+    buttonEl.type = "button";
+    buttonEl.innerHTML = btn.label;
+    buttonEl.onclick = () => insertMarkdown(btn.before, btn.after, contentTextarea);
+    toolbar.appendChild(buttonEl);
+  });
+
+  // Remove the existing elements
   titleEl.remove();
   contentEl.remove();
 
-  // Create cancel button
+  // Insert the editable fields and toolbar
+  postElement.insertBefore(titleInput, button);
+  postElement.insertBefore(toolbar, button);
+  postElement.insertBefore(contentTextarea, button);
+
+  // Cancel button
   const cancelButton = document.createElement("button");
   cancelButton.textContent = "✖️ Cancel";
   cancelButton.classList.add("cancelEditBtn");
@@ -151,52 +176,98 @@ async function editPost(button) {
       return;
     }
 
-    // Update UI
+    // Re-render post with markdown
     const newTitleEl = document.createElement("h2");
     newTitleEl.innerText = newTitle;
     const newContentEl = document.createElement("p");
-    newContentEl.innerText = newContent;
+    newContentEl.dataset.md = encodeURIComponent(newContent);
+    newContentEl.innerHTML = marked.parse(newContent);
 
     postElement.insertBefore(newTitleEl, titleInput);
     postElement.insertBefore(newContentEl, contentTextarea);
 
+    // Clean up
     titleInput.remove();
     contentTextarea.remove();
+    toolbar.remove();
     cancelButton.remove();
 
     button.textContent = " Edit";
-    button.onclick = function () {
-      editPost(button);
-    };
+    button.onclick = () => editPost(button);
 
-    // Show delete button again
     if (deleteBtn) deleteBtn.classList.remove("hidden");
 
     alert("✅ Post updated!");
   };
 
-  // Cancel edit functionality
+  // Cancel editing restores original display
   cancelButton.onclick = function () {
     const originalTitleEl = document.createElement("h2");
     originalTitleEl.innerText = titleInput.value;
     const originalContentEl = document.createElement("p");
-    originalContentEl.innerText = contentTextarea.value;
+    originalContentEl.dataset.md = encodeURIComponent(contentTextarea.value);
+    originalContentEl.innerHTML = marked.parse(contentTextarea.value);
 
     postElement.insertBefore(originalTitleEl, titleInput);
     postElement.insertBefore(originalContentEl, contentTextarea);
 
+    // Clean up
     titleInput.remove();
     contentTextarea.remove();
+    toolbar.remove();
     cancelButton.remove();
 
     button.textContent = " Edit";
-    button.onclick = function () {
-      editPost(button);
-    };
+    button.onclick = () => editPost(button);
 
-    // Show delete button again
     if (deleteBtn) deleteBtn.classList.remove("hidden");
   };
+}
+
+
+// --- SUBMIT POST with raw markdown saved ---
+async function submitPost() {
+  let title = document.getElementById("postTitle").value;
+  let content = document.getElementById("postContent").value;
+
+  if (title.trim() !== "" && content.trim() !== "") {
+    const { data, error } = await supabase
+      .from('posts')
+      .insert([{ title, content }])
+      .select();
+
+    sendNotification("New Post🔔", title);
+
+    if (error) {
+      alert("❌ Error adding post: " + error.message);
+    } else {
+      const newPost = data[0];
+      alert("✅ Post added successfully!");
+      document.getElementById("postTitle").value = "";
+      document.getElementById("postContent").value = "";
+      document.getElementById("postModal").classList.add("hidden");
+      addPostToUI(newPost.title, newPost.content, new Date().toLocaleDateString(), true, newPost.id);
+    }
+  } else {
+    alert("⚠️ Title and content cannot be empty!");
+  }
+}
+
+function insertMarkdown(before, after, textarea = document.getElementById('postContent')) {
+  if (!textarea) return;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+
+  const selected = text.slice(start, end);
+  const newText = before + selected + after;
+
+  textarea.value = text.slice(0, start) + newText + text.slice(end);
+  textarea.focus();
+
+  const cursorPosition = selected ? start + newText.length : start + before.length;
+  textarea.setSelectionRange(cursorPosition, cursorPosition);
 }
 
 
@@ -216,9 +287,13 @@ function addPostToUI(title, content, date, showDeleteBtn, id) {
   <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
 </svg> Delete</button>` : '';
 
+  // Render Markdown to HTML using marked
+  const renderedContent = marked.parse(content);
+
+  // Store raw markdown safely encoded in data attribute
   postElement.innerHTML = `
     <h2>${title}</h2>
-    <p>${content}</p>
+    <p data-md="${encodeURIComponent(content)}">${renderedContent}</p>
     <span class="date">${date}</span>
     ${editButton} ${deleteButton}
   `;

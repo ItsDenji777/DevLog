@@ -238,3 +238,46 @@ button:hover {
   66% { content: ".."; }
   100% { content: "..."; }
 }
+
+.editTitleInput, .editContentTextarea {
+  width: 100%;
+  margin: 10px 0;
+  font-family: monospace, monospace; /* Markdown editing feels better with monospace */
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.editContentTextarea {
+  height: 200px;
+  resize: vertical;
+}
+
+.log-container ul,
+.log-container ol {
+  list-style: disc inside; /* Or: 'decimal inside' for numbers */
+  margin-left: 1.5rem;    /* Indent list a bit for readability */
+  padding-left: 0;        /* Remove extra padding */
+}
+
+.log-container li {
+  margin-bottom: 0.3rem;  /* Space between list items if needed */
+}
+
+
+.toolbar {
+  margin-bottom: 0.5rem;
+}
+
+.toolbar button {
+  margin-right: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: #2d2d2d;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  background: #3d3d3d;
+}
