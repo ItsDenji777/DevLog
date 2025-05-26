@@ -72,7 +72,7 @@ footer {
 
 .content {
     position: absolute;
-    top: 12%;         /* height of the header */
+    top: 13%;         /* height of the header */
     bottom: 13%;      /* height of the footer */
     left: 0;
     right: 0;
