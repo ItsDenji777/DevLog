@@ -236,13 +236,12 @@ async function submitPost() {
       .insert([{ title, content }])
       .select();
 
-    sendNotification("New Post🔔", title);
-
     if (error) {
       alert("❌ Error adding post: " + error.message);
     } else {
       const newPost = data[0];
       alert("✅ Post added successfully!");
+      sendNotification("New Post🔔", title);
       document.getElementById("postTitle").value = "";
       document.getElementById("postContent").value = "";
       document.getElementById("postModal").classList.add("hidden");
