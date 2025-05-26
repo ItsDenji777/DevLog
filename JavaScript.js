@@ -69,28 +69,21 @@ async function submitPost() {
 
 // DELETE POST
 async function deletePost(button) {
-  let postElement = button.closest('.log-entry');
-  let title = postElement.querySelector("h2")?.innerText;
-  let content = postElement.querySelector("p")?.innerText;
+  const postElement = button.closest('.log-entry');
+  const postId = postElement.dataset.postId;
 
-  const { data, error } = await supabase
-    .from('posts')
-    .select('id')
-    .eq('title', title)
-    .eq('content', content);
-
-  if (error || !data || data.length === 0) {
-    alert("❌ Error finding post: " + (error?.message || "Post not found"));
+  if (!postId) {
+    alert("❌ Post ID not found.");
     return;
   }
 
-  const { error: deleteError } = await supabase
+  const { error } = await supabase
     .from('posts')
     .delete()
-    .eq('id', data[0].id);
+    .eq('id', postId);
 
-  if (deleteError) {
-    alert("❌ Error deleting post: " + deleteError.message);
+  if (error) {
+    alert("❌ Error deleting post: " + error.message);
   } else {
     postElement.remove();
     alert("✅ Post deleted successfully!");
@@ -235,10 +228,10 @@ async function submitPost() {
       .from('posts')
       .insert([{ title, content }])
       .select();
-
-    if (error) {
-      alert("❌ Error adding post: " + error.message);
-    } else {
+      if (error.message === 'new row violates row-level security policy for table "posts"') {
+        alert("❌ You do not have the permission to submit posts!")
+      }
+    else {
       const newPost = data[0];
       alert("✅ Post added successfully!");
       sendNotification("New Post🔔", title);
