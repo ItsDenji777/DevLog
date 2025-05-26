@@ -228,10 +228,9 @@ async function submitPost() {
       .from('posts')
       .insert([{ title, content }])
       .select();
-      if (error.message === 'new row violates row-level security policy for table "posts"') {
-        alert("❌ You do not have the permission to submit posts!")
-      }
-    else {
+      if (error) {
+        alert("❌ Error:", error.message)
+      } else {
       const newPost = data[0];
       alert("✅ Post added successfully!");
       sendNotification("New Post🔔", title);
