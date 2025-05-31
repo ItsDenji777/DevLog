@@ -198,6 +198,7 @@ button:hover {
 
 .cancelEditBtn {
  background-color: #ff5757;
+ transition: 0.3s ease-in-out;
 }
 
 .cancelEditBtn:hover {
@@ -271,13 +272,14 @@ button:hover {
 .toolbar button {
   margin-right: 0.25rem;
   padding: 0.25rem 0.5rem;
-  background: #2d2d2d;
+  background: #4fa3d1;
   border: none;
   border-radius: 4px;
   color: #fff;
   cursor: pointer;
+  transition: 0.3s ease-in-out;
 }
 
 .toolbar button:hover {
-  background: #3d3d3d;
+    box-shadow: 0px 0px 10px #4fa3d1;
 }

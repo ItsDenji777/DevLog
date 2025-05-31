@@ -94,128 +94,130 @@ async function deletePost(button) {
 // EDIT POST
 async function editPost(button) {
   const postElement = button.closest('.log-entry');
-  const postId = postElement.dataset.postId;
+  const postId = postElement?.dataset.postId;
+
+  if (!postId) {
+    alert("❌ Post ID missing!");
+    return;
+  }
+
   const titleEl = postElement.querySelector("h2");
   const contentEl = postElement.querySelector("p");
   const deleteBtn = postElement.querySelector(".deleteBtn");
 
-  // Hide delete button while editing
   if (deleteBtn) deleteBtn.classList.add("hidden");
 
-  // Create input fields for editing
+  // Create inputs
   const titleInput = document.createElement("input");
+  titleInput.className = "editTitleInput";
   titleInput.value = titleEl.innerText;
-  titleInput.classList.add("editTitleInput");
 
   const contentTextarea = document.createElement("textarea");
-  contentTextarea.classList.add("editContentTextarea");
-  const rawMarkdown = contentEl.dataset.md ? decodeURIComponent(contentEl.dataset.md) : contentEl.innerText;
+  contentTextarea.className = "editContentTextarea";
+  const rawMarkdown = contentEl.dataset.md
+    ? decodeURIComponent(contentEl.dataset.md)
+    : contentEl.innerText;
   contentTextarea.value = rawMarkdown;
 
-  // Markdown toolbar for editing
+  // Markdown toolbar
   const toolbar = document.createElement("div");
-  toolbar.classList.add("toolbar");
+  toolbar.className = "toolbar";
   const buttons = [
-    { label: "<b>B</b>", before: "**", after: "**" },
-    { label: "<i>I</i>", before: "_", after: "_" },
+    { label: "<b>Bold</b>", before: "**", after: "**" },
+    { label: "<i>Italic</i>", before: "_", after: "_" },
     { label: "Link", before: "[", after: "](url)" },
     { label: "Image", before: "![", after: "](image-url)" },
-    { label: "H1", before: "# ", after: "" },
-    { label: "H2", before: "## ", after: "" },
+    { label: "Header1", before: "# ", after: "" },
+    { label: "Header2", before: "## ", after: "" },
     { label: "•", before: "- ", after: "" },
-    { label: "1.", before: "1. ", after: "" },
   ];
   buttons.forEach(btn => {
     const buttonEl = document.createElement("button");
-    buttonEl.type = "button";
     buttonEl.innerHTML = btn.label;
+    buttonEl.type = "button";
     buttonEl.onclick = () => insertMarkdown(btn.before, btn.after, contentTextarea);
     toolbar.appendChild(buttonEl);
   });
 
-  // Remove the existing elements
-  titleEl.remove();
-  contentEl.remove();
+  // Hide original
+  titleEl.classList.add("hidden");
+  contentEl.classList.add("hidden");
 
-  // Insert the editable fields and toolbar
+  // Insert new fields
   postElement.insertBefore(titleInput, button);
   postElement.insertBefore(toolbar, button);
   postElement.insertBefore(contentTextarea, button);
 
   // Cancel button
-  const cancelButton = document.createElement("button");
-  cancelButton.textContent = "✖️ Cancel";
-  cancelButton.classList.add("cancelEditBtn");
-  postElement.insertBefore(cancelButton, button.nextSibling);
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = "cancelEditBtn";
+  cancelBtn.textContent = "✖️ Cancel";
+  postElement.insertBefore(cancelBtn, button.nextSibling);
 
-  // Change edit button to save
+  // Change Edit to Save
   button.textContent = "💾 Save";
-  button.onclick = async function () {
-    const newTitle = titleInput.value.trim();
-    const newContent = contentTextarea.value.trim();
+button.onclick = async function saveEdit() {
+  const newTitle = titleInput.value.trim();
+  const newContent = contentTextarea.value.trim();
 
-    if (newTitle === "" || newContent === "") {
-      alert("⚠️ Title and content cannot be empty!");
-      return;
-    }
+  if (!newTitle || !newContent) {
+    alert("⚠️ Title and content cannot be empty!");
+    return;
+  }
 
-    const { error } = await supabase
-      .from('posts')
-      .update({ title: newTitle, content: newContent })
-      .eq('id', postId);
+  const { error } = await supabase
+    .from("posts")
+    .update({ title: newTitle, content: newContent })
+    .eq("id", postId);
 
-    if (error) {
-      alert("❌ Error updating post: " + error.message);
-      return;
-    }
+  if (error) {
+    alert("❌ Error updating post: " + error.message);
+    return;
+  }
 
-    // Re-render post with markdown
-    const newTitleEl = document.createElement("h2");
-    newTitleEl.innerText = newTitle;
-    const newContentEl = document.createElement("p");
-    newContentEl.dataset.md = encodeURIComponent(newContent);
-    newContentEl.innerHTML = marked.parse(newContent);
+  // ✅ Update display
+  titleEl.innerText = newTitle;
+  contentEl.dataset.md = encodeURIComponent(newContent);
 
-    postElement.insertBefore(newTitleEl, titleInput);
-    postElement.insertBefore(newContentEl, contentTextarea);
+  // ✅ Clear old HTML before inserting new content
+  contentEl.innerHTML = ""; 
+  contentEl.innerHTML = marked.parse(newContent);
 
-    // Clean up
+  titleEl.classList.remove("hidden");
+  contentEl.classList.remove("hidden");
+
+  // ✅ Clean up edit mode
+  titleInput.remove();
+  contentTextarea.remove();
+  toolbar.remove();
+  cancelBtn.remove();
+  if (deleteBtn) deleteBtn.classList.remove("hidden");
+
+  button.textContent = " Edit";
+  button.onclick = () => editPost(button);
+
+  alert("✅ Post updated!");
+};
+
+
+  // Cancel button logic
+  cancelBtn.onclick = () => {
     titleInput.remove();
     contentTextarea.remove();
     toolbar.remove();
-    cancelButton.remove();
+    cancelBtn.remove();
+    if (deleteBtn) deleteBtn.classList.remove("hidden");
+
+    titleEl.classList.remove("hidden");
+    contentEl.classList.remove("hidden");
 
     button.textContent = " Edit";
     button.onclick = () => editPost(button);
-
-    if (deleteBtn) deleteBtn.classList.remove("hidden");
-
-    alert("✅ Post updated!");
-  };
-
-  // Cancel editing restores original display
-  cancelButton.onclick = function () {
-    const originalTitleEl = document.createElement("h2");
-    originalTitleEl.innerText = titleInput.value;
-    const originalContentEl = document.createElement("p");
-    originalContentEl.dataset.md = encodeURIComponent(contentTextarea.value);
-    originalContentEl.innerHTML = marked.parse(contentTextarea.value);
-
-    postElement.insertBefore(originalTitleEl, titleInput);
-    postElement.insertBefore(originalContentEl, contentTextarea);
-
-    // Clean up
-    titleInput.remove();
-    contentTextarea.remove();
-    toolbar.remove();
-    cancelButton.remove();
-
-    button.textContent = " Edit";
-    button.onclick = () => editPost(button);
-
-    if (deleteBtn) deleteBtn.classList.remove("hidden");
   };
 }
+
+
+
 
 
 // --- SUBMIT POST with raw markdown saved ---
