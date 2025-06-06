@@ -1,14 +1,17 @@
 // Initialize Supabase
+console.log("Initializing Supabase client...");
 const supabase = window.supabase.createClient(
   'https://sckrkyjhxcaihcqjbble.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNja3JreWpoeGNhaWhjcWpiYmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMzc0NTEsImV4cCI6MjA2MjgxMzQ1MX0.vATeLDd-7qctmtQSNpHkySTQrW2aSz1NMNJAJA2t1ao'
 );
-
+console.log("Supabase client ready.");
 
 // LOGIN FUNCTION
 async function login() {
+  console.log("Login attempt started.");
   const email = document.getElementById("loginEmail").value;
   const password = document.getElementById("loginPassword").value;
+  console.log(`Logging in with email: ${email}`);
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -16,10 +19,12 @@ async function login() {
   });
 
   if (error) {
+    console.error("Login failed:", error);
     alert("❌ Login failed: " + error.message);
     return;
   }
 
+  console.log("Login successful");
   alert("✅ Logged in successfully as admin!");
   updateAuthUI(true);
   document.getElementById("loginModal").classList.add("hidden");
@@ -27,12 +32,15 @@ async function login() {
 
 // LOGOUT FUNCTION
 async function logout() {
+  console.log("Logging out...");
   await supabase.auth.signOut();
   alert("🔒 Logged out successfully.");
   updateAuthUI(false);
+  console.log("Logout completed.");
 }
 
 function updateAuthUI(isLoggedIn) {
+  console.log(`Updating UI for login status: ${isLoggedIn}`);
   document.getElementById("newPostBtn").classList.toggle("hidden", !isLoggedIn);
   document.getElementById("logoutBtn").classList.toggle("hidden", !isLoggedIn);
   document.getElementById("loginBtn").classList.toggle("hidden", isLoggedIn);
@@ -41,21 +49,25 @@ function updateAuthUI(isLoggedIn) {
 
 // SUBMIT POST
 async function submitPost() {
+  console.log("Submitting new post...");
   let title = document.getElementById("postTitle").value;
   let content = document.getElementById("postContent").value;
+  console.log(`Post title: "${title}", content length: ${content.length}`);
 
   if (title.trim() !== "" && content.trim() !== "") {
     const { data, error } = await supabase
       .from('posts')
-      .insert([{ title, content }])
+      .insert([{ title, content, likes: 0 }])
       .select();
-      sendNotification("New Post🔔", title);
 
     if (error) {
+      console.error("Error adding post:", error);
       alert("❌ Error adding post: " + error.message);
     } else {
+      console.log("Post added:", data);
       const newPost = data[0];
       alert("✅ Post added successfully!");
+      sendNotification("New Post🔔", title);
       document.getElementById("postTitle").value = "";
       document.getElementById("postContent").value = "";
       document.getElementById("postModal").classList.add("hidden");
@@ -63,17 +75,20 @@ async function submitPost() {
     }
   } else {
     alert("⚠️ Title and content cannot be empty!");
+    console.warn("Submit post failed: empty title or content.");
   }
 }
 
-
 // DELETE POST
 async function deletePost(button) {
+  console.log("Delete post triggered.");
   const postElement = button.closest('.log-entry');
   const postId = postElement.dataset.postId;
+  console.log(`Post ID to delete: ${postId}`);
 
   if (!postId) {
     alert("❌ Post ID not found.");
+    console.warn("Delete failed: post ID missing.");
     return;
   }
 
@@ -83,21 +98,30 @@ async function deletePost(button) {
     .eq('id', postId);
 
   if (error) {
+    console.error("Error deleting post:", error);
     alert("❌ Error deleting post: " + error.message);
   } else {
     postElement.remove();
     alert("✅ Post deleted successfully!");
+    console.log(`Post ${postId} deleted.`);
   }
 }
 
 
 // EDIT POST
 async function editPost(button) {
+  console.log("Edit post initiated.");
   const postElement = button.closest('.log-entry');
   const postId = postElement?.dataset.postId;
+  console.log(`Editing post ID: ${postId}`);
+
+  const dateEl = postElement.querySelector(".date");
+  const originalDate = dateEl ? dateEl.textContent : Date().toLocaleDateString();
+
 
   if (!postId) {
     alert("❌ Post ID missing!");
+    console.warn("Edit failed: post ID missing.");
     return;
   }
 
@@ -175,29 +199,16 @@ button.onclick = async function saveEdit() {
     return;
   }
 
-  // ✅ Update display
-  titleEl.innerText = newTitle;
-  contentEl.dataset.md = encodeURIComponent(newContent);
+  // ✅ Remove old post from DOM
+  postElement.remove();
 
-  // ✅ Clear old HTML before inserting new content
-  contentEl.innerHTML = ""; 
-  contentEl.innerHTML = marked.parse(newContent);
+  // ✅ Re-add it with updated data
+  addPostToUI(newTitle, newContent, originalDate, true, postId);
 
-  titleEl.classList.remove("hidden");
-  contentEl.classList.remove("hidden");
-
-  // ✅ Clean up edit mode
-  titleInput.remove();
-  contentTextarea.remove();
-  toolbar.remove();
-  cancelBtn.remove();
-  if (deleteBtn) deleteBtn.classList.remove("hidden");
-
-  button.textContent = " Edit";
-  button.onclick = () => editPost(button);
 
   alert("✅ Post updated!");
 };
+
 
 
   // Cancel button logic
@@ -210,8 +221,7 @@ button.onclick = async function saveEdit() {
 
     titleEl.classList.remove("hidden");
     contentEl.classList.remove("hidden");
-
-    button.textContent = " Edit";
+    button.innerHTML = '<i class="bi bi-pencil-fill"></i> Edit';
     button.onclick = () => editPost(button);
   };
 }
@@ -265,42 +275,140 @@ function insertMarkdown(before, after, textarea = document.getElementById('postC
 
 
 
-// ADD POST TO UI
-function addPostToUI(title, content, date, showDeleteBtn, id) {
+// ADD POST TO UI (updated)
+function addPostToUI(title, content, date, showDeleteBtn, id, likes = 0) {
   const logContainer = document.querySelector(".log-container");
   const postElement = document.createElement("div");
   postElement.classList.add("log-entry");
   postElement.style.position = "relative";
   postElement.dataset.postId = id;
 
-  const editButton = showDeleteBtn ? `<button class="editBtn" onclick="editPost(this)"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-</svg> Edit</button>` : '';
-  const deleteButton = showDeleteBtn ? `<button class="deleteBtn" onclick="deletePost(this)"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-  <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
-</svg> Delete</button>` : '';
+  const liked = checkIfLiked(id);
+  const likeCount = likes || 0;
 
-  // Render Markdown to HTML using marked
-  const renderedContent = marked.parse(content);
+  const likeButton = `
+  <button class="likeBtn ${liked ? 'liked' : ''}" onclick="likePost('${id}')" ${liked ? "disabled" : ""}>
+    <svg class="heart-icon" viewBox="0 0 24 24">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+               2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09
+               C13.09 3.81 14.76 3 16.5 3
+               19.58 3 22 5.42 22 8.5
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+            />
+    </svg>
+    <span class="likecounter ${liked ? 'liked' : ''}" id="like-count-${id}">${likeCount}</span>
+  </button>`;
 
-  // Store raw markdown safely encoded in data attribute
+  const editButton = showDeleteBtn ? `<button class="editBtn" onclick="editPost(this)"><i class="bi bi-pencil-fill"></i> Edit</button>` : '';
+  const deleteButton = showDeleteBtn ? `<button class="deleteBtn" onclick="deletePost(this)"><i class="bi bi-trash-fill"></i> Delete</button>` : '';
+
+const renderedContent = marked.parse(content, { breaks: true });
+
+
   postElement.innerHTML = `
     <h2>${title}</h2>
     <p data-md="${encodeURIComponent(content)}">${renderedContent}</p>
     <span class="date">${date}</span>
+    ${likeButton}
     ${editButton} ${deleteButton}
   `;
 
   logContainer.prepend(postElement);
 }
 
+function getLikesFromCookie(postId) {
+  const cookie = document.cookie
+    .split('; ')
+    .find(row => row.startsWith(`likes_${postId}=`));
+  return cookie ? parseInt(cookie.split('=')[1]) : 0;
+}
+
+function checkIfLiked(postId) {
+  return document.cookie.includes(`liked_${postId}=true`);
+}
+
+function toggleLike(postId) {
+  let likeCount = getLikesFromCookie(postId);
+  const liked = checkIfLiked(postId);
+
+  if (liked) {
+    // Already liked, do nothing or optionally allow unlike
+    return;
+  }
+
+  likeCount++;
+  document.cookie = `likes_${postId}=${likeCount}; max-age=31536000; path=/`;
+  document.cookie = `liked_${postId}=true; max-age=31536000; path=/`;
+
+  const likeCountEl = document.getElementById(`like-count-${postId}`);
+  if (likeCountEl) likeCountEl.textContent = likeCount;
+}
+async function likePost(postId) {
+  console.log(`Like post clicked for post ID: ${postId}`);
+
+  if (checkIfLiked(postId)) {
+    console.warn(`Post ${postId} already liked by this user.`);
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select("likes")
+    .eq("id", postId)
+    .single();
+
+  if (error || !data) {
+    console.error("Error fetching post for like:", error);
+    alert("❌ Error fetching post for liking.");
+    return;
+  }
+
+  const newLikes = (data.likes || 0) + 1;
+  console.log(`Updating likes to ${newLikes} for post ${postId}`);
+
+  const { error: updateError } = await supabase
+    .from("posts")
+    .update({ likes: newLikes })
+    .eq("id", postId);
+
+  if (updateError) {
+    console.error("Error updating likes:", updateError);
+    alert("❌ Error updating likes.");
+    return;
+  }
+
+  console.log(`Likes updated for post ${postId}`);
+
+  const likeCountEl = document.getElementById(`like-count-${postId}`);
+  if (likeCountEl) likeCountEl.textContent = newLikes;
+
+  document.cookie = `liked_${postId}=true; max-age=31536000; path=/`;
+
+  const likeBtn = likeCountEl.closest("button");
+  const likecounter = likeCountEl.closest("span");
+  if (likeBtn) {
+    likeBtn.disabled = true;
+    likeBtn.classList.add("liked");
+    likecounter.classList.add("liked");
+
+    const icon = likeBtn.querySelector(".heart-icon");
+    if (icon) {
+      icon.classList.remove("popped");
+      void icon.offsetWidth;
+      icon.classList.add("popped");
+    }
+  }
+}
+
 
 // FINAL window.onload
 window.onload = async function () {
+  console.log("Page loading... fetching session and posts.");
   document.getElementById("loadingOverlay").classList.remove("hidden");
 
   const session = await supabase.auth.getSession();
   const user = session.data.session?.user;
+  console.log("User Session and Fingerprint Loaded/Generated");
   updateAuthUI(!!user);
   const isLoggedIn = !!user;
 
@@ -310,15 +418,18 @@ window.onload = async function () {
     .order('created_at', { ascending: true });
 
   if (error) {
+    console.error("Error loading posts:", error);
     alert("❌ Error loading posts: " + error.message);
   } else {
+    console.log(`Loaded ${data.length} posts.`);
     data.forEach(post => {
       let formattedDate = new Date(post.created_at).toLocaleDateString();
-      addPostToUI(post.title, post.content, formattedDate, isLoggedIn, post.id);
+      addPostToUI(post.title, post.content, formattedDate, isLoggedIn, post.id, post.likes || 0);
     });
   }
 
   document.getElementById("loadingOverlay").classList.add("hidden");
+  console.log("Page load complete.");
 };
 
 
