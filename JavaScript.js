@@ -17,7 +17,7 @@
 // Configuration
 const CONFIG = {
   SUPABASE_URL: 'https://sckrkyjhxcaihcqjbble.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNja3JreWpoeGNhaWhjcWpiYmxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcyMzc0NTEsImV4cCI6MjA2MjgxMzQ1MX0.vATeLDd-7qctmtQSNpHkySTQrW2aSz1NMNJAJA2t1ao',
+  SUPABASE_ANON_KEY: 'sb_publishable_OKNcNUQhAJ47Q2jenQURSg_ngvV2_Lt',
   COOKIE_MAX_AGE: 31536000, // 1 year
   
   // Performance settings
